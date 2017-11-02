@@ -34,7 +34,26 @@ except:
 
 
 def get_tweets():
-##YOUR CODE HERE
+    search = "umsi"
+    if search in CACHE_DICTION:
+        print ('using cache ')
+        return CACHE_DICTION[search]
+    else:
+        print ('fetching data...')
+        api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
+        public_tweets = api.search(search)
+        UMSItweets = {}
+
+        for item in public_tweets['statuses']:
+            UMSItweets[item['text']]=item['created_at']
+
+        CACHE_DICTION[search] = UMSItweets
+        wfile= open(CACHE_FNAME, 'w')
+        wfile.write(json.dumps(CACHE_DICTION))
+        wfile.close()
+
+        return CACHE_DICTION[search]
+
 
 
 
