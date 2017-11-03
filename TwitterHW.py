@@ -15,17 +15,17 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 
 # Set up library to grab stuff from twitter with your authentication, and return it in a JSON format
-api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
+api = tweepy.API(auth, parser=tweepy.parsers.JSONParser()) #api to access twitter
 
 # And we've provided the setup for your cache. But we haven't written any functions for you, so you have to be sure that any function that gets data from the internet relies on caching.
-CACHE_FNAME = "twitter_cache.json"
+CACHE_FNAME = "twitter_cache.json" #naming cache file
 try:
-    cache_file = open(CACHE_FNAME,'r')
-    cache_contents = cache_file.read()
-    cache_file.close()
-    CACHE_DICTION = json.loads(cache_contents)
+    cache_file = open(CACHE_FNAME,'r') #opening a file 
+    cache_contents = cache_file.read() #reading a file
+    cache_file.close() #close file
+    CACHE_DICTION = json.loads(cache_contents) #loading contents of file
 except:
-    CACHE_DICTION = {}
+    CACHE_DICTION = {} #dictionary
 
 ## [PART 1]
 
@@ -34,19 +34,19 @@ except:
 
 
 def get_tweets():
-    if 'umsi' in CACHE_DICTION:
-        print('using cache... ')
-        search_results = CACHE_DICTION['umsi']
+    if 'umsi' in CACHE_DICTION: #if umsi is in the cache
+        print('using cache... ') #print the phrase
+        search_results = CACHE_DICTION['umsi'] #variable indexing the search umsi in cache
     else:
-        print('fetching data... ')
-        search_results = api.user_timeline('umsi')
+        print('fetching data... ') #print the phrase
+        search_results = api.user_timeline('umsi') #search for umsi on twitter
 
-        CACHE_DICTION['umsi'] = search_results
-        wfile= open(CACHE_FNAME, 'w')
-        wfile.write(json.dumps(CACHE_DICTION))
-        wfile.close()
+        CACHE_DICTION['umsi'] = search_results #adding to cache
+        wfile= open(CACHE_FNAME, 'w') #opening cache
+        wfile.write(json.dumps(CACHE_DICTION)) #writing the dictionary/ loading it
+        wfile.close() #closing cache
 
-    return search_results
+    return search_results #return the search results
 
 
 ## [PART 2]
@@ -61,25 +61,25 @@ def get_tweets():
 # Below we have provided interim outline suggestions for what to do, sequentially, in comments.
 
 # 1 - Make a connection to a new database tweets.sqlite, and create a variable to hold the database cursor.
-conn =sqlite3.connect('tweets.db')
-cur = conn.cursor()
+conn =sqlite3.connect('tweets.db') #creating the sql database
+cur = conn.cursor() #creating variable to hold the database cursor
 
 # 2 - Write code to drop the Tweets table if it exists, and create the table (so you can run the program over and over), with the correct (4) column names and appropriate types for each.
 # HINT: Remember that the time_posted column should be the TIMESTAMP data type!
 cur.execute('DROP TABLE IF EXISTS Tweets')
-cur.execute('CREATE TABLE Tweets (tweet_id TEXT, author TEXT, time_posted TIMESTAMP, tweet_text TEXT, retweets NUMBER)')
+cur.execute('CREATE TABLE Tweets (tweet_id TEXT, author TEXT, time_posted TIMESTAMP, tweet_text TEXT, retweets NUMBER)') #making columns and rows for table
 
 # 3 - Invoke the function you defined above to get a list that represents a bunch of tweets from the UMSI timeline. Save those tweets in a variable called umsi_tweets.
-umsi_tweets = get_tweets()
+umsi_tweets = get_tweets() #invoking the function
 
 # 4 - Use a for loop, the cursor you defined above to execute INSERT statements, that insert the data from each of the tweets in umsi_tweets into the correct columns in each row of the Tweets database table.
 
-for tw in umsi_tweets:
-    tup = tw["id"], tw["user"]["screen_name"], tw["created_at"], tw["text"], tw["retweet_count"]
-    cur.execute('INSERT INTO Tweets (tweet_id, author, time_posted, tweet_text, retweets) VALUES (?, ?, ?, ?, ?)', tup)
+for tw in umsi_tweets: #looking for tweet in the function
+    tup = tw["id"], tw["user"]["screen_name"], tw["created_at"], tw["text"], tw["retweet_count"] #creating tuple pairs
+    cur.execute('INSERT INTO Tweets (tweet_id, author, time_posted, tweet_text, retweets) VALUES (?, ?, ?, ?, ?)', tup) #inserting tuples into table
 
 #  5- Use the database connection to commit the changes to the database
-conn.commit()
+conn.commit() #committing database changes
 # You can check out whether it worked in the SQLite browser! (And with the tests.)
 
 ## [PART 3] - SQL statements
@@ -89,18 +89,18 @@ conn.commit()
     # Mon Oct 09 15:45:45 +0000 2017 - RT @MikeRothCom: Beautiful morning at @UMich - It’s easy to forget to
     # take in the view while running from place to place @umichDLHS  @umich…
 # Include the blank line between each tweet.
-print("tests for part 3")
-cur.execute("SELECT time_posted, tweet_text FROM Tweets")
-all_res = cur.fetchall()
-for t in all_res:
-    print(t[0] + " - " + t[1] + "\n")
+print("tests for part 3") 
+cur.execute("SELECT time_posted, tweet_text FROM Tweets") #seelction tweets from umsi tweets
+all_res = cur.fetchall() #fetching tweets
+for t in all_res: 
+    print(t[0] + " - " + t[1] + "\n") #printing the tweets and when they were written
 
 # Select the author of all of the tweets (the full rows/tuples of information) that have been retweeted MORE
 # than 2 times, and fetch them into the variable more_than_2_rts.
 # Print the results
-cur.execute("SELECT author FROM Tweets WHERE retweets>2")
-more_than_2_rts = cur.fetchall()
-print("more_than_2_rts - %s" %set(more_than_2_rts))
+cur.execute("SELECT author FROM Tweets WHERE retweets>2") #selecting author of tweets that have been retweeted 2 times
+more_than_2_rts = cur.fetchall() #fetching data
+print("more_than_2_rts - %s" %set(more_than_2_rts)) #printing the name of whats been retweeted more than 2 times
 
 cur.close()
 
